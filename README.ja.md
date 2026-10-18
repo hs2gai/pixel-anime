@@ -53,11 +53,7 @@ pnpm install
 pnpm cf:deploy    # 書き出して公開（プレビュー URL は pnpm cf:preview）
 ```
 
-## セキュリティ
-
-- `serve.py`は開発用です。インターネットには公開しないでください
-- 「.」で始まるファイル（`.git/`・`.env`）は返さず、書きかえるAPIはこのPCで開いた管理画面からの要求だけを受け付けます（接続元・Host・Originを確かめる）
-- 秘密の値はリポジトリに入れないでください（`.env*`は`.gitignore`済み。認証は`wrangler login`）
+`serve.py`は開発用です。インターネットには公開しないでください。
 
 ## ライセンス
 

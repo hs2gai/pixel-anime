@@ -53,11 +53,7 @@ pnpm install
 pnpm cf:deploy    # build and deploy (pnpm cf:preview for a preview URL)
 ```
 
-## Security
-
-- `serve.py` is for development only; do not expose it to the internet
-- It never serves dotfiles (`.git/`, `.env`), and its write APIs accept only requests from the admin page on this machine (client, Host and Origin are checked)
-- Keep secrets out of the repository (`.env*` is ignored; use `wrangler login`)
+`serve.py` is for development only. Do not expose it to the internet.
 
 ## License
 
