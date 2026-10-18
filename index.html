@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width,initial-scale=1" name="viewport"/>
+<title>pixel-anime ドット紙芝居</title>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&amp;family=Pixelify+Sans&amp;family=IBM+Plex+Mono:wght@400;500&amp;family=Shippori+Mincho:wght@500;700&amp;display=swap" rel="stylesheet"/>
+<script>
+// 言語：?lang=en で英語。URL で選んだ言語は覚えて、作品の再生画面でも使う。どちらも選んでいなければブラウザの言語に従う（engine/core.js と同じ）
+{
+  const q = new URLSearchParams(location.search).get('lang');
+  let lang = q;
+  try { if (q === 'ja' || q === 'en') localStorage.setItem('lang', q); else lang = localStorage.getItem('lang'); } catch (e) { /* 保存できない環境では URL かブラウザの言語 */ }
+  if (lang !== 'ja' && lang !== 'en') lang = navigator.language.startsWith('ja') ? 'ja' : 'en';
+  document.documentElement.lang = lang;
+}
+// 選んだ表示モードを、描く前に当てる（ちらつき防止）。選んでいなければライト
+document.documentElement.dataset.theme = 'light';
+try { const t = localStorage.getItem('pixel-anime:theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) { /* 保存できない環境では既定のまま */ }
+</script>
+<style>
+  :root {
+    --bg: #121212; --card: #1a1a1a; --line: #2e2d2b; --ui: #8f8c86; --text: #d8d4ca; --strong: #ffffff;
+    --hover: #57544e; --pressed: #26251f;
+    --paper: #efeadf; --ink: #1d1b18; --accent: #ffd23f; --win: #101848;
+    --dot: 'DotGothic16', monospace; --serif: 'Shippori Mincho', 'Yu Mincho', serif; --mono: 'IBM Plex Mono', ui-monospace, monospace;
+  }
+  /* ライトモード（右上の切り替えで選ぶ。既定はダーク） */
+  :root[data-theme="light"] {
+    --bg: #f5f1e8; --card: #fffdf8; --line: #ddd5c4; --ui: #6b665d; --text: #2a2721; --strong: #1a1814;
+    --hover: #a89f8c; --pressed: #e6dfcf;
+    --paper: #2a2721; --ink: #f5f1e8; --accent: #c08a00;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body { font: 400 15px/1.8 var(--serif); padding: 56px 16px 72px; }
+  main { max-width: 1080px; margin: 0 auto; }
+  a { color: inherit; }
+
+  header { margin-bottom: 48px; }
+  .logo { font: 400 clamp(34px, 7vw, 56px)/1 var(--dot); letter-spacing: .04em; margin: 0; color: var(--strong); }
+  .logo span { color: var(--accent); }
+  .lead { margin: 16px 0 0; color: var(--ui); max-width: 40em; }
+  /* 鑑賞上のご注意 */
+  .notice { margin-top: 20px; border: 1px solid var(--line); border-left: 3px solid var(--accent); border-radius: 6px; padding: 14px 18px; font-size: 13.5px; color: var(--ui); }
+  /* 見出しを押すと開く（既定は閉じる） */
+  .notice summary { font: 700 14px/1.4 var(--serif); letter-spacing: .08em; color: var(--text); cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; }
+  .notice summary::-webkit-details-marker { display: none; }
+  .notice summary::before { content: '▶'; font-size: 10px; color: var(--accent); transition: transform .15s; }
+  .notice[open] summary::before { transform: rotate(90deg); }
+  .notice summary:hover { color: var(--strong); }
+  .notice ul { margin: 10px 0 0; padding-left: 1.3em; }
+  .notice li + li { margin-top: 2px; }
+
+  h2 { font: 400 18px/1 var(--dot); letter-spacing: .12em; color: var(--strong); margin: 48px 0 18px; display: flex; align-items: center; gap: 14px; }
+  h2::after { content: ''; flex: 1; height: 1px; background: var(--line); }
+  /* 青空文庫への参照元リンク */
+  .ref { position: relative; z-index: 1; font: 400 12px/1 var(--mono); letter-spacing: .04em; color: var(--ui); text-decoration: none; border: 1px solid var(--line); border-radius: 4px; padding: 4px 7px; white-space: nowrap; }
+  .ref:hover, .ref:focus-visible { color: var(--strong); border-color: var(--hover); }
+  .book { font: 700 16px/1.4 var(--serif); letter-spacing: .1em; color: var(--text); margin: -4px 0 4px; }
+  .book + .grid { margin-top: 14px; }   /* 巻のないシリーズ（教材）は、本の題のすぐ下にカード */
+  /* 巻（中国怪奇小説集の「捜神記」など）と、その本文へのリンク */
+  .vol { font-size: 14px; letter-spacing: .06em; color: var(--ui); margin: 0 0 16px; display: flex; align-items: center; gap: 10px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); gap: 22px; }
+  .card { position: relative; background: var(--card); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; transition: transform .2s, border-color .2s; }
+  .card:hover, .card:focus-within { transform: translateY(-3px); border-color: var(--hover); }
+  .thumb { position: relative; aspect-ratio: 16 / 9; background: #000; }
+  .thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .thumb .len { position: absolute; right: 10px; bottom: 10px; font: 500 12px/1 var(--mono); color: #fff; background: rgba(0, 0, 0, .7); padding: 5px 7px; border-radius: 5px; }
+  .card .body { padding: 16px 18px 18px; }
+  /* 題名は白い札 */
+  .title { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; }
+  .name { font: 700 19px/1.4 var(--serif); letter-spacing: .08em; color: var(--ink); background: var(--paper); padding: .2em .7em; text-decoration: none; outline: none; }
+  .name::after { content: ''; position: absolute; inset: 0; }   /* カード全体を作品へのリンクにする */
+  .desc { margin: 8px 0 0; font-size: 14px; }
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+  .tag { font: 400 11.5px/1 var(--mono); color: var(--ui); border: 1px solid var(--line); border-radius: 4px; padding: 5px 7px; }
+
+  /* 操作はゲームのメッセージウィンドウ風に */
+  .keys { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 340px), 1fr)); column-gap: 28px; margin-top: 24px; background: var(--win); border: 3px double #fff; border-radius: 6px; padding: 16px 22px; font: 400 14px/2 var(--dot); color: #fff; }
+  :root[data-theme="light"] .keys { box-shadow: 0 0 0 2px var(--win); }
+  .keys b { color: #ffd23f; font-weight: 400; display: inline-block; min-width: 5.5em; }
+  footer { margin-top: 56px; font: 400 13px/1 var(--mono); color: var(--ui); text-align: center; }
+  footer a { text-decoration: none; }
+  footer a:hover, footer a:focus-visible { color: var(--strong); }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+  /* 作家のタグ。並べ方のボタンの下に 1 行で並べ、押した作家だけを出す */
+  .authors { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
+  .authors button { font: 500 12.5px/1 var(--serif); letter-spacing: .04em; color: var(--ui); background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 7px 12px; cursor: pointer; }
+  .authors button:hover { color: var(--strong); border-color: var(--hover); }
+  .authors button[aria-pressed="true"] { color: var(--strong); background: var(--pressed); border-color: var(--accent); }
+  .authors small { font: 400 11px/1 var(--mono); color: var(--ui); margin-left: 6px; }
+  .group[hidden], .grid[hidden], .vol[hidden], .book[hidden], .card[hidden] { display: none; }
+  /* ジャンルのタグ。作家のタグの下に並べ、作家と合わせて絞り込む。カードではジャンルを先頭に色つきで出す */
+  .genres { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 6px; }
+  .genres button { font: 500 12.5px/1 var(--serif); letter-spacing: .04em; color: var(--ui); background: none; border: 1px dashed var(--line); border-radius: 999px; padding: 7px 12px; cursor: pointer; }
+  .genres button:hover { color: var(--strong); border-color: var(--hover); }
+  .genres button[aria-pressed="true"] { color: var(--strong); background: var(--pressed); border: 1px solid var(--accent); }
+  .genres small { font: 400 11px/1 var(--mono); color: var(--ui); margin-left: 6px; }
+  .tag.genre { color: var(--accent); border-color: var(--accent); }
+  .sort { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+  .sort button { font: 500 12.5px/1 var(--mono); color: var(--ui); background: none; border: 0; padding: 9px 12px; cursor: pointer; }
+  .sort button + button { border-left: 1px solid var(--line); }
+  .sort button[aria-pressed="true"] { color: var(--strong); background: var(--pressed); }
+  #theme { margin-left: auto; font: 500 12.5px/1 var(--mono); color: var(--ui); background: var(--card); border: 1px solid var(--line); border-radius: 7px; padding: 8px 12px; cursor: pointer; white-space: nowrap; }
+  #theme:hover { color: var(--strong); border-color: var(--hover); }
+
+  /* 物語 / 教材のタブ */
+  .tabbar { display: flex; align-items: flex-end; gap: 10px; margin: 40px 0 28px; border-bottom: 1px solid var(--line); }
+  .tabs { display: flex; gap: 4px; }
+  .tabs button { font: 400 17px/1 var(--dot); letter-spacing: .12em; color: var(--ui); background: none; border: 1px solid transparent; border-bottom: 0; border-radius: 8px 8px 0 0; padding: 12px 20px 11px; margin-bottom: -1px; cursor: pointer; }
+  .tabs button:hover { color: var(--strong); }
+  .tabs button[aria-selected="true"] { color: var(--strong); background: var(--bg); border-color: var(--line); box-shadow: inset 0 3px 0 var(--accent); }
+  .tabbar #theme { margin-bottom: 8px; }
+  [role="tabpanel"][hidden] { display: none; }
+  .panel-lead { margin: 0 0 4px; color: var(--ui); max-width: 44em; }
+
+  /* 英語版：ドットの字は欧文の Pixelify Sans（作品の再生画面と同じ）。字間は詰める */
+  :root:lang(en) { --dot: 'Pixelify Sans', monospace; }
+  :lang(en) .logo, :lang(en) h2, :lang(en) .tabs button, :lang(en) .name, :lang(en) .book, :lang(en) .notice summary { letter-spacing: .02em; }
+  .ja-only { border-style: dashed; }
+  #lang { font: 500 12.5px/1 var(--mono); color: var(--ui); background: var(--card); border: 1px solid var(--line); border-radius: 7px; padding: 8px 12px; cursor: pointer; margin-bottom: 8px; white-space: nowrap; }
+  #lang:hover { color: var(--strong); border-color: var(--hover); }
+
+  @media (max-width: 520px) {
+    body { padding-top: 36px; }
+  }
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1 class="logo">pixel<span>-</span>anime</h1>
+<p class="lead" data-en="Pixel-art picture-story shows, styled like an RPG. One sample is included; add your own works under works/.">ドット絵で動く紙芝居（RPG風）です。サンプルとして 1 作だけ入っています。作品は works/ に足していきます。</p>
+<div class="keys">
+<div data-en-html="&lt;b&gt;Space&lt;/b&gt;Play / Pause (next in manual mode)"><b>Space</b>再生 / 一時停止（マニュアルでは次へ）</div>
+<div data-en-html="&lt;b&gt;← →&lt;/b&gt;Previous / Next cut"><b>← →</b>前 / 次のカット</div>
+<div data-en-html="&lt;b&gt;A&lt;/b&gt;Auto / Manual (Enter or click for next)"><b>A</b>オート / マニュアル（マニュアルはEnterかクリックで次へ）</div>
+<div data-en-html="&lt;b&gt;M&lt;/b&gt;Music on / off"><b>M</b>BGMのオン / オフ</div>
+<div data-en-html="&lt;b&gt;S&lt;/b&gt;Sound effects on / off"><b>S</b>効果音のオン / オフ</div>
+<div data-ja-only=""><b>R</b>ルビのオン / オフ</div>
+<div data-en-html="&lt;b&gt;G&lt;/b&gt;Text (pixel / plain, easier to read)"><b>G</b>文字（ドット / 字形が正確なゴシック）</div>
+<div data-en-html="&lt;b&gt;C&lt;/b&gt;Sprite style (S / M / Bun S / Bun M)"><b>C</b>人物の絵柄（小・中・いか 小・いか 中）</div>
+<div data-en-html="&lt;b&gt;F&lt;/b&gt;Fullscreen"><b>F</b>全画面</div>
+<div data-en-html="&lt;b&gt;O&lt;/b&gt;Original text on / off (where available)"><b>O</b>原文 / 訳文（原文のある作品）</div>
+<div data-en-html="&lt;b&gt;L&lt;/b&gt;Language (日本語 / English)"><b>L</b>言語（日本語 / English）</div>
+<div data-ja-only=""><b>1〜9</b>問いに答える（← → で選んでEnterも可）</div>
+</div>
+</header>
+<div class="tabbar">
+<div aria-label="一覧の切り替え" class="tabs" data-en-label="Switch list" role="tablist">
+<button aria-controls="p-story" data-en="Stories" data-tab="story" id="t-story" role="tab" type="button">物語</button>
+
+</div>
+<button aria-label="ライト / ダークの切り替え" data-en-label="Light / Dark" id="theme" type="button"></button>
+<button aria-label="言語 / Language" id="lang" type="button"></button>
+</div>
+<section aria-labelledby="t-story" id="p-story" role="tabpanel">
+<p class="panel-lead" data-en="Sample: a public-domain tale from Aozora Bunko.">サンプル：青空文庫のパブリックドメインのお話から。</p>
+<details class="notice">
+<summary data-en="Before you watch">鑑賞上のご注意</summary>
+<ul>
+<li data-en="These are not complete reproductions of the original works. Please consult the originals for the exact text.">原著作物の完全な再現ではないため、正確な記述は原典をあたるようにしてください</li>
+<li data-en="Each show visualizes one interpretation of the story and does not rule out others.">あくまで物語の一解釈をビジュアル化したものであり、他の解釈の可能性を否定するものではありません</li>
+<li data-en="We try to respect the original text, but some parts are rearranged to fit the format.">原文を尊重するようにしていますが、構成上の都合で再構成されていることがあります</li>
+<li data-en="Some game-like touches do not appear in the originals.">原典にはないゲーム的表現が含まれることがあります</li>
+<li data-en="Translations made by an LLM (Claude) may contain mistranslations or misreadings. This includes the English translations.">LLMによる原典からの翻訳では、誤訳や誤釈が含まれることがあります</li>
+<li data-en="Proofreading is not complete, so some passages may still feel unnatural.">校正は完全ではないため鑑賞時に不自然に感じられる部分が残ります</li>
+<li data-en-html='Old Japanese books were read with &lt;a href="https://github.com/ndl-lab/ndlkotenocr_cli" target="_blank"&gt;NDL Classical Book OCR (ver. 3)&lt;/a&gt; and corrected by an LLM, so errors remain.'>古典籍のOCRは<a href="https://github.com/ndl-lab/ndlkotenocr_cli" target="_blank">NDL古典籍OCR（ver.3）</a>で読み取りLLMが校正していますが誤訳や誤釈が含まれます</li>
+</ul>
+</details>
+<div class="controls">
+<div aria-label="並べ方" class="sort" data-en-label="Sort" role="group">
+<button aria-pressed="true" data-en="Newest" data-sort="new" type="button">新しい順</button>
+<button aria-pressed="false" data-en="Oldest" data-sort="old" type="button">作った順</button>
+</div>
+<div aria-label="作家で絞り込む" class="authors" data-en-label="Filter by author" id="authors" role="group"></div>
+<div aria-label="ジャンルで絞り込む" class="genres" data-en-label="Filter by genre" id="genres" role="group"></div>
+</div>
+<div id="groups">
+
+<section class="group" data-author="岡本綺堂">
+<h2><span data-en="Kido Okamoto">岡本綺堂</span> <a class="ref" href="https://www.aozora.gr.jp/index_pages/person82.html" rel="noopener" target="_blank">青空文庫 ↗</a></h2>
+<h3 class="book" data-en="Chinese Tales of the Strange">中国怪奇小説集</h3>
+<p class="vol"><span data-en="from the Soushen Ji (Six Dynasties)　English translation: Claude">捜神記（六朝）</span> <a class="ref" href="https://www.aozora.gr.jp/cards/000082/files/1298_11892.html" rel="noopener" target="_blank">青空文庫 ↗</a></p>
+<div class="grid">
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<article class="card" data-genre="fate origin" data-n="9">
+<div class="thumb"><img alt="山の上から城が湖に沈むのを見る老女と童子" data-en-alt="From a mountaintop, the old woman and a boy watch the city sink into a lake" loading="lazy" src="thumbs/kame_rpg.jpg"/><span class="len" data-en="2:24">2:10</span></div>
+<div class="body">
+<p class="title"><a class="name" data-en="The Turtle's Eyes" href="works/kame_rpg.html">亀の眼</a></p>
+<p class="desc" data-en="When the stone turtle's eyes turn red, the city will sink. A prankster boy paints its eyes red. Two tales of sinking cities.">石の亀の眼が赤くなったら城が沈む。いたずら者の少年が、その眼に朱を塗った。城の沈む話を二つ。</p>
+<div class="tags"><span class="tag" data-en="prophecy">予言</span><span class="tag" data-en="cataclysm">天変地異</span><span class="tag" data-en="repaying kindness">恩返し</span></div>
+</div>
+</article>
+
+</div>
+</section>
+
+
+
+
+
+</div>
+</section>
+
+<footer><a href="https://github.com/hs2gai/pixel-anime">GitHub</a></footer>
+</main>
+<script>
+// ---- 言語（頭の script で <html lang> に決めてある）----
+// 英語版は data-en（字）・data-en-html（中身）・data-en-alt（画像の説明）・data-en-label（aria-label）に差し替え、data-ja-only は消す。
+// カードの題名に data-en のない作品は英語版がないので、英語版の一覧では「Japanese only」の札を付ける
+const EN = document.documentElement.lang === 'en';
+if (EN) {
+  document.title = 'pixel-anime: Pixel-Art Picture Stories';
+  for (const el of document.querySelectorAll('[data-en]')) el.textContent = el.dataset.en;
+  for (const el of document.querySelectorAll('[data-en-html]')) el.innerHTML = el.dataset.enHtml;
+  for (const el of document.querySelectorAll('[data-en-alt]')) el.alt = el.dataset.enAlt;
+  for (const el of document.querySelectorAll('[data-en-label]')) el.setAttribute('aria-label', el.dataset.enLabel);
+  for (const el of document.querySelectorAll('[data-ja-only]')) el.remove();
+  const REF = { '青空文庫 ↗': 'Aozora Bunko ↗', '原文 ↗': 'Original ↗' };
+  for (const a of document.querySelectorAll('a.ref')) a.textContent = REF[a.textContent] ?? a.textContent;
+  for (const s of document.querySelectorAll('.len')) s.textContent = s.textContent.replace(/^約(\d+)分$/, '~$1 min');
+  for (const card of document.querySelectorAll('article.card')) {
+    // 英語版のある作品は、英語の字幕のサムネイル（thumbs/en/）にする
+    if (card.querySelector('a.name').dataset.en) { const img = card.querySelector('.thumb img'); img.src = img.getAttribute('src').replace('thumbs/', 'thumbs/en/'); continue; }
+    card.querySelector('.tags').prepend(Object.assign(document.createElement('span'), { className: 'tag ja-only', textContent: 'Japanese only' }));
+  }
+}
+// 言語の切り替え：URL の lang を差し替えて開き直す
+const langBtn = document.getElementById('lang');
+langBtn.textContent = EN ? '日本語' : 'English';
+langBtn.addEventListener('click', () => {
+  const u = new URL(location.href);
+  u.searchParams.set('lang', EN ? 'ja' : 'en');
+  location.href = u;
+});
+
+// 並べ方：既定は新しい順（data-n が大きいほど新しい）。選んだ並べ方はこのブラウザに覚えておく
+const KEY = 'pixel-anime:sort';
+// カードは自分の番号、欄はそのなかで一番新しいカードの番号
+const newest = el => el.dataset.n ? +el.dataset.n : Math.max(...[...el.querySelectorAll('[data-n]')].map(c => +c.dataset.n));
+function arrange(mode) {
+  const dir = mode === 'old' ? 1 : -1, by = (a, b) => (newest(a) - newest(b)) * dir;
+  const groups = document.getElementById('groups');
+  [...groups.children].sort(by).forEach(g => groups.appendChild(g));
+  for (const grid of groups.querySelectorAll('.grid')) [...grid.children].sort(by).forEach(c => grid.appendChild(c));
+  for (const b of document.querySelectorAll('.sort button')) b.setAttribute('aria-pressed', String(b.dataset.sort === mode));
+}
+let mode = 'new';
+try { mode = localStorage.getItem(KEY) || 'new'; } catch (e) { /* 保存できない環境では既定のまま */ }
+arrange(mode);
+for (const b of document.querySelectorAll('.sort button')) b.addEventListener('click', () => {
+  arrange(b.dataset.sort);
+  try { localStorage.setItem(KEY, b.dataset.sort); } catch (e) { /* 保存できなくても並べ替えはする */ }
+});
+
+// 表示モード：ライト / ダーク。選んだモードはこのブラウザに覚えておく
+const THEME_KEY = 'pixel-anime:theme', themeBtn = document.getElementById('theme');
+const isLight = () => document.documentElement.dataset.theme === 'light';
+// 字は記号だけ（狭い画面でも折り返さない）。何に切り替わるかは title に出す
+const showTheme = () => { themeBtn.textContent = isLight() ? '☾' : '☀'; themeBtn.title = isLight() ? (EN ? 'Dark' : 'ダーク') : (EN ? 'Light' : 'ライト'); };
+showTheme();
+themeBtn.addEventListener('click', () => {
+  const t = isLight() ? 'dark' : 'light';
+  document.documentElement.dataset.theme = t; showTheme();
+  try { localStorage.setItem(THEME_KEY, t); } catch (e) { /* 保存できなくても切り替えはする */ }
+});
+
+// 物語 / 教材のタブ：#kyozai のように URL で開ける。選んだタブはこのブラウザに覚えておく
+const TAB_KEY = 'pixel-anime:tab', tabs = [...document.querySelectorAll('[role="tab"]')];
+function showTab(name, focus) {
+  const t = tabs.find(b => b.dataset.tab === name) ?? tabs[0];
+  for (const b of tabs) {
+    const on = b === t;
+    b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1;
+    document.getElementById(b.getAttribute('aria-controls')).hidden = !on;
+  }
+  if (focus) t.focus();
+  return t.dataset.tab;
+}
+function pickTab(name) {
+  name = showTab(name);
+  history.replaceState(null, '', name === 'story' ? location.pathname : '#' + name);
+  try { localStorage.setItem(TAB_KEY, name); } catch (e) { /* 保存できなくても切り替えはする */ }
+}
+let tab = location.hash.slice(1);
+if (!tab) try { tab = localStorage.getItem(TAB_KEY) || 'story'; } catch (e) { tab = 'story'; }
+showTab(tab);
+for (const b of tabs) {
+  b.addEventListener('click', () => pickTab(b.dataset.tab));
+  // ← → でタブを移る
+  b.addEventListener('keydown', e => {
+    const d = { ArrowLeft: -1, ArrowRight: 1 }[e.key];
+    if (!d) return;
+    const next = tabs[(tabs.indexOf(b) + d + tabs.length) % tabs.length];
+    pickTab(next.dataset.tab); next.focus();
+  });
+}
+addEventListener('hashchange', () => showTab(location.hash.slice(1) || 'story'));
+
+// 作家で絞り込む：タグは欄の data-author から作る（"" はすべて）。選んだ作家もこのブラウザに覚えておく
+const AUTHOR_KEY = 'pixel-anime:author', authorTags = document.getElementById('authors');
+const sections = () => [...document.querySelectorAll('#groups .group')];
+let author = '', genre = '';
+function filterAuthor(name) {
+  const tags = [...authorTags.children];
+  if (!tags.some(b => b.dataset.author === name)) name = '';
+  author = name;
+  for (const b of tags) b.setAttribute('aria-pressed', String(b.dataset.author === name));
+  applyFilter();
+}
+// 欄が変わったら（下の非公開の取り除き）呼び直す
+function fillAuthors() {
+  const count = new Map([['', document.querySelectorAll('#groups .card').length]]);
+  for (const g of sections()) count.set(g.dataset.author, (count.get(g.dataset.author) ?? 0) + g.querySelectorAll('.card').length);
+  authorTags.textContent = '';
+  for (const [name, n] of count) {
+    const b = document.createElement('button');
+    const label = name ? document.querySelector(`#groups .group[data-author="${name}"] h2`).firstChild.textContent.trim() : EN ? 'All' : 'すべて';
+    b.type = 'button'; b.dataset.author = name; b.textContent = label;
+    b.append(Object.assign(document.createElement('small'), { textContent: n }));
+    b.addEventListener('click', () => {
+      filterAuthor(name);
+      try { localStorage.setItem(AUTHOR_KEY, name); } catch (e) { /* 保存できなくても絞り込みはする */ }
+    });
+    authorTags.append(b);
+  }
+  let saved = '';
+  try { saved = localStorage.getItem(AUTHOR_KEY) || ''; } catch (e) { /* 保存できない環境では既定のまま */ }
+  filterAuthor(saved);
+}
+
+// ジャンルで絞り込む：カードの data-genre（空白区切りの id）を GENRES の名前（日本語・英語）で出す。タグの名前を変えるときはここだけ直す
+const GENRES = {
+  ghost: ['鬼と幽霊', 'Ghosts & Demons'], monster: ['化け物', 'Monsters'], bond: ['異類との縁', 'Otherworldly Bonds'],
+  magic: ['仙術・幻術', 'Magic & Illusion'], karma: ['報いと恩返し', 'Karma & Gratitude'], fate: ['天の定め', "Heaven's Will"],
+  odd: ['小人・奇妙なもの', 'Tiny Folk & Oddities'], origin: ['由来・伝説', 'Origins & Legends'], slay: ['退治と復讐', 'Slaying & Revenge'],
+  mind: ['人の心・不条理', 'Mind & Absurdity'],
+};
+const GENRE_KEY = 'pixel-anime:genre', genreTags = document.getElementById('genres');
+const genreName = id => GENRES[id][EN ? 1 : 0];
+const genresOf = card => (card.dataset.genre ?? '').split(' ').filter(Boolean);
+for (const card of document.querySelectorAll('#groups .card')) {
+  card.querySelector('.tags').prepend(...genresOf(card).map(g => Object.assign(document.createElement('span'), { className: 'tag genre', textContent: genreName(g) })));
+}
+function filterGenre(name) {
+  const tags = [...genreTags.children];
+  if (!tags.some(b => b.dataset.genre === name)) name = '';
+  genre = name;
+  for (const b of tags) b.setAttribute('aria-pressed', String(b.dataset.genre === name));
+  applyFilter();
+}
+// 作家とジャンルの両方に合うカードだけ出し、出すカードのなくなった見出しと欄を隠す（隠し方は下の非公開の取り除きと同じ）
+const hideEmpty = parent => {
+  let below = 0;
+  for (const el of [...parent.children].reverse()) {
+    const r = el.tagName === 'H2' ? 1 : el.classList.contains('book') ? 2 : el.classList.contains('vol') ? 3 : el.classList.contains('grid') ? 4 : 0;
+    el.hidden = r === 4 ? !el.querySelector('.card:not([hidden])') : r > 0 && (!below || below <= r);
+    if (!r) below = 0;
+    else if (!el.hidden) below = r;
+  }
+};
+function applyFilter() {
+  for (const g of sections()) {
+    for (const card of g.querySelectorAll('.card')) card.hidden = !!genre && !genresOf(card).includes(genre);
+    hideEmpty(g);
+    g.hidden = (!!author && g.dataset.author !== author) || !g.querySelector('.card:not([hidden])');
+  }
+}
+// 欄が変わったら（下の非公開の取り除き）呼び直す
+function fillGenres() {
+  const cards = [...document.querySelectorAll('#groups .card')];
+  genreTags.textContent = '';
+  for (const id of ['', ...Object.keys(GENRES)]) {
+    const n = id ? cards.filter(c => genresOf(c).includes(id)).length : cards.length;
+    if (!n) continue;
+    const b = document.createElement('button');
+    b.type = 'button'; b.dataset.genre = id; b.textContent = id ? genreName(id) : EN ? 'All genres' : 'すべてのジャンル';
+    b.append(Object.assign(document.createElement('small'), { textContent: n }));
+    b.addEventListener('click', () => {
+      filterGenre(id);
+      try { localStorage.setItem(GENRE_KEY, id); } catch (e) { /* 保存できなくても絞り込みはする */ }
+    });
+    genreTags.append(b);
+  }
+  let saved = '';
+  try { saved = localStorage.getItem(GENRE_KEY) || ''; } catch (e) { /* 保存できない環境では既定のまま */ }
+  filterGenre(saved);
+}
+fillAuthors();
+fillGenres();
+</script>
+<script data-local="" type="module">
+// 手元（serve.py）で開いたときは、publish.json に載っていない作品を一覧から外す（非公開の作品は管理画面 admin.html から開く）。
+// 公開用の書き出し（build.py）はこの script ごと消し、カードは書き出しの時点で外す。カードがなくなった見出しの消し方も build.py の prune_headings と同じ
+const res = await fetch('publish.json');
+if (res.ok) {
+  const pub = new Set((await res.json()).public);
+  for (const card of document.querySelectorAll('article.card')) {
+    if (!pub.has(card.querySelector('a.name').getAttribute('href').split('/').pop())) card.remove();
+  }
+  // 見出しの深さ。後ろから見て、次に残る要素より浅い見出しだけ残す
+  const rank = el => el.tagName === 'H2' ? 1 : el.classList.contains('book') ? 2 : el.classList.contains('vol') ? 3 : el.classList.contains('grid') ? 4 : 0;
+  const prune = parent => {
+    let below = 0;
+    for (const el of [...parent.children].reverse()) {
+      const r = rank(el);
+      if (!r) below = 0;
+      else if (r === 4 && !el.querySelector('.card')) el.remove();
+      else if (r < 4 && (!below || below <= r)) el.remove();
+      else below = r;
+    }
+  };
+  for (const g of document.querySelectorAll('#groups .group')) {
+    prune(g);
+    if (!g.querySelector('.card')) g.remove();
+  }
+  const kyozai = document.getElementById('p-kyozai');   // 教材の欄（あれば）
+  if (kyozai) prune(kyozai);
+  fillAuthors();
+  fillGenres();
+}
+</script>
+</body>
+</html>

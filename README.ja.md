@@ -1,0 +1,66 @@
+# pixel-anime ― ドット紙芝居
+
+[English](README.md) | 日本語
+
+ドット絵で動く紙芝居ムービー（見下ろし型RPG風）の再生エンジンです。作品はHTML1ファイルの台本で書きます。
+文字はメッセージウィンドウに1文字ずつ流れ（名札・選択肢・ルビ・頭上の「！」）、BGMと効果音はWebAudioで合成するチップチューンです。作品は日英の2か国語にできます。
+
+![サンプル「亀の眼」](thumbs/kame_rpg.jpg)
+
+サンプルとして、岡本綺堂「中国怪奇小説集」より「亀の眼」（`works/kame_rpg.html`）を1作だけ入れています。これを手本に、各自で`works/`に作品を足していきます。
+
+## 始め方
+
+Python 3と[Beautiful Soup 4](https://pypi.org/project/beautifulsoup4/)が必要です（Node.jsとpnpmはCloudflareへ公開するときだけ）。
+
+```bash
+pip install beautifulsoup4
+python serve.py          # http://localhost:8765/ を開く
+```
+
+- `serve.py`はキャッシュさせないので、編集は再読み込みで反映されます。このPCからだけ開けます。`python serve.py 8765 0.0.0.0`で同じネットワークにも開きます（信頼できるネットワークでだけ）
+- `works/kame_rpg.html?c=3&f=0.5`のように開くと、カット3の途中で一時停止した状態から始まります（確認やサムネイル撮りに）
+- 操作：`Space`再生／停止、`← →`カット、`A`オート／マニュアル、`M`BGM、`S`効果音、`G`ドット／ゴシック、`C`人物の絵柄、`L`言語、`F`全画面
+
+## 構成
+
+```
+index.html    作品の一覧（サムネイルは thumbs/、thumbs/en/）
+works/        作品（1 作品 1 ファイル）
+engine/       再生エンジン（core.js・rpg.js・songs.js・CSS）
+cast/         共用の部品（kaiki_kit.js：部品から組む人物・小道具・背景）
+admin.html    公開の管理画面（serve.py で開いたときだけ）
+publish.json  公開する作品
+build.py      公開用のサイトを dist/ に書き出す
+serve.py      開発用のサーバー
+```
+
+## 作品の作り方
+
+1. `works/kame_rpg.html`を写して`works/xxx_rpg.html`を作り、題・人物・背景・台本を書きかえる
+2. `index.html`にカードを足す（`data-n`は今までで一番大きい番号＋1。新しい順に並ぶ）
+3. サムネイルを`thumbs/xxx_rpg.jpg`に置く（英語版は`thumbs/en/`にも）
+4. 管理画面（http://localhost:8765/admin.html）で公開に切り替える
+
+本文には、パブリックドメインか、使ってよい許諾のある文章だけを使ってください。
+
+## 公開
+
+`python build.py`（または管理画面の「公開用に書き出す」）で、公開する作品だけを`dist/`に書き出します。中身は静的なファイルだけです。Cloudflare Workersに置くときは`wrangler.jsonc`の`name`（と`routes`）を自分のものに変えて：
+
+```bash
+pnpm install
+pnpm cf:deploy    # 書き出して公開（プレビュー URL は pnpm cf:preview）
+```
+
+## セキュリティ
+
+- `serve.py`は開発用です。インターネットには公開しないでください
+- 「.」で始まるファイル（`.git/`・`.env`）は返さず、書きかえるAPIはこのPCで開いた管理画面からの要求だけを受け付けます（接続元・Host・Originを確かめる）
+- 秘密の値はリポジトリに入れないでください（`.env*`は`.gitignore`済み。認証は`wrangler login`）
+
+## ライセンス
+
+コードは[MIT License](LICENSE)です。
+サンプルの本文：岡本綺堂「中国怪奇小説集」（[青空文庫](https://www.aozora.gr.jp/cards/000082/files/1298_11892.html)、パブリックドメイン）。英訳はClaude。
+フォント（DotGothic16・Pixelify Sans・BIZ UDGothic・IBM Plex Mono・Shippori Mincho）はGoogle FontsからSIL Open Font Licenseで読み込みます。

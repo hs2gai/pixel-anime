@@ -1,0 +1,97 @@
+/* 再生 UI（HUD・シークバー・はじめる画面）。どの描画エンジンでも使う */
+@import url("https://fonts.googleapis.com/css2?family=DotGothic16&family=Pixelify+Sans&family=BIZ+UDGothic&family=IBM+Plex+Mono:wght@400;500&family=Shippori+Mincho:wght@500;700&display=swap");
+:root {
+  --bg: #121212;
+  --paper: #efeadf;
+  --ink: #1d1b18;
+  --ui: #8f8c86;
+  --ui-line: #343331;
+  --mono: 'IBM Plex Mono', ui-monospace, monospace;
+  --serif: 'Shippori Mincho', 'Yu Mincho', serif;
+}
+html, body { margin: 0; height: 100%; background: var(--bg); overflow: hidden; color: var(--ui); }
+canvas { display: block; }
+
+
+/* HUD */
+.hud { transition: opacity .6s; }
+body.idle .hud { opacity: 0; }
+#chap { position: fixed; top: 14px; left: 16px; font: 500 13px/1 var(--mono); letter-spacing: .08em; padding: 9px 12px; border: 1px solid var(--ui-line); border-radius: 7px; box-sizing: border-box; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#btns { position: fixed; top: 14px; right: 16px; display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; max-width: calc(100% - 32px); }   /* 狭い画面では折り返す */
+.b {
+  font: 500 13px/1 var(--mono); letter-spacing: .08em; color: var(--ui);
+  background: #161616; border: 1px solid var(--ui-line); border-radius: 7px;
+  padding: 9px 12px; cursor: pointer; min-width: 40px; text-decoration: none; text-align: center; white-space: nowrap;
+}
+.b:hover { color: #d8d4ca; border-color: #555; }
+/* 選択（人物の絵柄）：ボタンと同じ見た目に ▾ を付ける */
+select.b { appearance: none; padding-right: 26px; background: #161616 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='5'%3E%3Cpath d='M0 0h8L4 5z' fill='%238f8c86'/%3E%3C/svg%3E") no-repeat right 10px center; }
+select.b option { background: #161616; color: #d8d4ca; }
+/* ♪ の音のメニュー（BGM・効果音のチェック） */
+.drop { position: relative; }
+.b.mute { opacity: .45; }
+.drop .menu {
+  position: absolute; top: calc(100% + 6px); right: 0; display: none; white-space: nowrap;
+  padding: 8px 14px; background: #161616; border: 1px solid var(--ui-line); border-radius: 8px;
+  font: 400 12.5px/2.1 var(--mono); color: var(--ui);
+}
+.drop .menu.show { display: block; }
+.drop .menu label { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+.drop .menu label:hover { color: #d8d4ca; }
+.drop .menu input { accent-color: #c9c4b8; margin: 0; }
+#help {
+  position: fixed; top: 58px; right: 16px; padding: 14px 18px;
+  background: #161616; border: 1px solid var(--ui-line); border-radius: 8px;
+  font: 400 12.5px/2 var(--mono); display: none;
+}
+#help.show { display: block; }
+#help kbd { display: inline-block; min-width: 4.5em; color: #d8d4ca; }
+#bar { position: fixed; left: 16px; right: 16px; bottom: 22px; height: 18px; cursor: pointer; }
+#bar .track { position: absolute; left: 0; right: 0; top: 8px; height: 2px; background: var(--ui-line); }
+#bar .fill { position: absolute; left: 0; top: 8px; height: 2px; background: #c9c4b8; width: 0; }
+#bar .tick { position: absolute; top: 4px; width: 1px; height: 10px; background: #555; }
+
+#start {
+  position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+  padding-bottom: 14vh; gap: 18px;
+}
+#start.hide { display: none; }
+#start { pointer-events: none; }   /* 画面全体を覆うが、操作ボタンへのクリックは通す */
+#start button { pointer-events: auto; }
+#start button { font: 700 18px/1 var(--serif); letter-spacing: .3em; padding: 16px 30px 16px 36px; color: var(--ink); background: var(--paper); border: 0; cursor: pointer; clip-path: polygon(1% 4%, 100% 0, 99% 96%, 0 100%); }
+
+/* シークバーの見本：マウスを乗せた位置のカットの絵と、最初の文の頭 */
+#peek {
+  position: fixed; bottom: 48px; width: 224px; padding: 6px; pointer-events: none;
+  background: #161616; border: 1px solid var(--ui-line); border-radius: 8px;
+}
+#peek.hide { display: none; }
+#peek canvas { display: block; width: 100%; height: auto; image-rendering: pixelated; border-radius: 4px; }
+#peek .txt {
+  margin-top: 6px; font: 400 12px/1.5 var(--mono); color: #d8d4ca;
+  overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;   /* 2 行まで */
+}
+
+/* 最後のカット（シリーズの作品だけ）：前の話・もう一度・次の話 */
+#end {
+  position: fixed; inset: 0; display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 14px;
+  padding: 0 16px; pointer-events: none;   /* 画面全体を覆うが、操作ボタンへのクリックは通す */
+}
+#end.hide { display: none; }
+#end.faint .eb { pointer-events: none; }   /* 浮かび上がる途中の薄いうちは押せない */
+.eb {
+  pointer-events: auto; display: flex; flex-direction: column; align-items: center; gap: 8px;
+  font: 700 15px/1.3 var(--serif); color: var(--ink); background: var(--paper); border: 0; cursor: pointer;
+  padding: 14px 20px; text-decoration: none; max-width: 15em; text-align: center;
+}
+.eb .lbl { font: 500 12px/1 var(--mono); letter-spacing: .08em; opacity: .7; }
+
+@media (max-width: 800px) {
+  #chap { display: none; }   /* ボタンと重なるため */
+}
+@media (max-width: 600px) {
+  #bHelp { display: none; }
+  #btns { top: 8px; right: 8px; gap: 6px; max-width: calc(100% - 16px); }
+  .b { font-size: 12px; letter-spacing: .04em; padding: 8px 9px; min-width: 34px; }
+  select.b { padding-right: 22px; background-position: right 8px center; }
+}

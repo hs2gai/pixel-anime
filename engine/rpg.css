@@ -1,0 +1,47 @@
+/* RPG 版（rpg.js）の再生 UI。core.css の後に読む。
+   はじめる画面とシークバーを、メッセージウィンドウと同じ 8bit の見た目にそろえる（右上の操作ボタンは core.css の黒のまま） */
+:root {
+  --win: #101848;   /* rpg.js の UI.win と同じ紺 */
+  --accent: #ffd23f;
+  --dot: 'DotGothic16', monospace;
+}
+:root:lang(en) { --dot: 'Pixelify Sans', monospace; }   /* 英語版（rpg.js の UI.fontEn と同じ） */
+body { background: #000; }
+
+/* シークバー：金色のゲージ */
+/* メッセージウィンドウの下の縁に重ならないよう、画面のいちばん下へ。つかみやすいよう太めにし、クリックできる高さも広げる */
+#bar { bottom: 2px; height: 24px; }
+#bar .track { top: 7px; height: 10px; background: #2a2f5a; border-radius: 5px; }
+#bar .fill { top: 7px; height: 10px; background: var(--accent); border-radius: 5px; }
+#bar .tick { top: 4px; height: 16px; width: 2px; background: #fff; }
+#bar:hover .track { background: #3a4180; }
+
+/* シークバーの見本：メッセージウィンドウと同じ紺の窓 */
+#peek { bottom: 34px; background: var(--win); border: 2px solid #fff; border-radius: 4px; box-shadow: 0 4px 0 rgba(0, 0, 0, .45); }
+#peek canvas { border-radius: 0; }
+#peek .txt { font-family: var(--dot); color: #fff; }
+#peek.latin .txt { font-family: 'Pixelify Sans', monospace; }   /* 欧文だけの文（rpg.js の UI.fontEn） */
+#peek.gothic .txt { font-family: 'BIZ UDGothic', sans-serif; }
+
+/* はじめる：扉の作者名のすぐ下（--start-top は rpg.js が入れる）。RPG のウィンドウと点滅する ▶ カーソル */
+#start { justify-content: flex-start; padding: var(--start-top, 60vh) 0 0; }
+#start button {
+  font: 400 max(15px, calc(30px * var(--start-k, 1)))/1 var(--dot); letter-spacing: .2em; color: #fff;
+  background: var(--win); border: 2px solid #fff; border-radius: 4px; clip-path: none;
+  box-shadow: inset 0 0 0 2px var(--win), inset 0 0 0 3px #fff, 0 4px 0 rgba(0, 0, 0, .45);
+  padding: .73em 1.33em .73em 1.07em;
+}
+#start button:hover, #start button:focus-visible { color: var(--accent); outline: none; }
+#start button .cur { color: var(--accent); margin-right: -.2em; animation: cursor-blink 1s steps(1) infinite; }
+@keyframes cursor-blink { 50% { opacity: 0; } }
+
+/* 最後のカット：はじめると同じ位置（クレジットのすぐ下）に、同じ RPG のウィンドウで前の話・もう一度・次の話 */
+#end { align-items: flex-start; align-content: flex-start; padding-top: var(--start-top, 60vh); }
+.eb {
+  font: 400 max(13px, calc(20px * var(--start-k, 1)))/1.4 var(--dot); letter-spacing: .1em; color: #fff;
+  background: var(--win); border: 2px solid #fff; border-radius: 4px;
+  box-shadow: inset 0 0 0 2px var(--win), inset 0 0 0 3px #fff, 0 4px 0 rgba(0, 0, 0, .45);
+}
+.eb .lbl { font: 400 max(11px, calc(15px * var(--start-k, 1)))/1 var(--dot); color: var(--accent); opacity: 1; }
+.eb:hover, .eb:focus-visible { color: var(--accent); outline: none; }
+@media (prefers-reduced-motion: reduce) { #start button .cur { animation: none; } }

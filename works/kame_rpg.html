@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="langs" content="ja en">
+<title>亀の眼｜中国怪奇小説集｜岡本綺堂</title>
+<link rel="stylesheet" href="../engine/core.css">
+<link rel="stylesheet" href="../engine/rpg.css">
+</head>
+<body>
+<script src="../engine/core.js"></script>
+<script src="../engine/rpg.js"></script>
+<script src="../engine/songs.js"></script>
+<script src="../cast/kaiki_kit.js"></script>
+<script>
+'use strict';
+// =====================================================================
+//  岡本綺堂「中国怪奇小説集」より「亀の眼」（捜神記） RPG 版。人物は 2 倍
+//  巣の城の話と、長水県の城の話の二つ
+// =====================================================================
+Object.assign(NAMES, L({ oldwoman: '老女', oldwomanSit: '老女', oldman: '老人', youth: '少年', blueboy: '青衣の童子', soldier: '将校' },
+  { oldwoman: 'The Old Woman', oldwomanSit: 'The Old Woman', oldman: 'The Old Man', youth: 'The Boy', blueboy: 'The Boy in Blue', soldier: 'The Officer' }));
+
+const S = 2, SY = G + 8, BIG = { sc: S, y: SY };
+const TURTLE = { x: 280, y: SY + 2, sc: S };
+
+opening('citygate', L('亀の眼', `The Turtle's Eyes`), {}, 'kameTheme');
+
+// ---- 巣の城 ----
+chapter(1, L('巣の城', `The City of Chao`), 'riverside', {}, { bgm: null });
+cut({ bgm: 'mystery', scene: 'riverside', sp: { flood: [[0, 1], [.65, 0]] }, dur: 7,
+  cap: L('むかし｜巣《そう》の江水がある日にわかに｜漲《みなぎ》ったが、ただ一日で又もとの通りになった。', `Long ago, the river at Chao suddenly rose one day, but after only a single day it went back to the way it had been.`) });
+cut({ bgm: 'chinese', scene: 'riverside',
+  cap: L('そのときに、重量一万｜斤《きん》ともおぼしき大魚が港口に打ち揚げられて、三日の後に死んだので、土地の者は皆それを割いて食った。', `At that time, a huge fish that seemed to weigh ten thousand jin was left stranded at the river mouth. It died three days later, and the townspeople all cut it up and ate it.`),
+  actors: [{ s: 'fish', x: 210, y: SY + 4, sc: S, shake: [[0, .8], [.35, .8], [.4, 0]] },
+    { s: 'villager', x: 112, ...BIG, bob: true }, { s: 'villagerB', x: 316, flip: true, ...BIG, bob: true }, { s: 'farmer', x: 356, flip: true, ...BIG, bob: true }] });
+cut({ scene: 'riverside',
+  cap: L('そのなかで、唯ひとりの老女はその魚を食わなかった。', `Among them, only one old woman did not eat the fish.`),
+  actors: [{ s: 'fish', x: 210, y: SY + 4, sc: S }, { s: 'villager', x: 112, ...BIG, bob: true }, { s: 'villagerB', x: 316, flip: true, ...BIG, bob: true },
+    { s: 'oldwoman', x: 48, ...BIG }],
+  fx: [{ k: 'emote', who: 3, s: '…', at: .4, d: 1.6 }] });
+cut({ scene: 'house',
+  cap: L('その老女の家へ｜見識《みし》らない老人がたずねて来た。', `One day an old man she had never seen came to her house.`),
+  actors: [{ s: 'oldwomanSit', x: 140, ...BIG }, { s: 'oldman', x: 236, enter: 'right', flip: true, ...BIG, w: { k: 'staff', a: 100 } }] });
+cut({ scene: 'house',
+  say: { who: 1, text: L('「あの｜魚《さかな》はわたしの子であるが、不幸にしてこんな｜禍《わざわ》いに逢うことになった。この土地の者は皆それを食ったなかで、お前ひとりは食わなかったから、私はおまえに礼をしたい。城の東門前にある石の亀に注意して、もしその眼が赤くなったときは、この城の｜陥没《かんぼつ》する時だと思いなさい」', `"That fish was my son, and by ill fortune he met this disaster. Everyone in this town ate him except you, so I wish to repay you. Keep watch on the stone turtle before the east gate of the city. If ever its eyes turn red, know that the city is about to sink."`) },
+  actors: [{ s: 'oldwomanSit', x: 140, ...BIG }, { s: 'oldman', x: 236, flip: true, ...BIG, w: { k: 'staff', a: 100 } }] });
+cut({ bgm: null, scene: 'house',
+  cap: L('老人の姿はどこへか｜失《う》せてしまった。', `Then the old man vanished.`),
+  actors: [{ s: 'oldwomanSit', x: 140, ...BIG }, { s: 'oldman', x: 236, flip: true, ...BIG, a: [[.15, 1], [.55, 0]], w: { k: 'staff', a: 100 } }],
+  fx: [{ k: 'glint', x: 236, y: 98, t: [.3, .7], snd: 'glint', at: .3 }, { k: 'emote', who: 0, s: '!', at: .6 }] });
+cut({ bgm: 'chinese', scene: 'citygate',
+  cap: L('その以来、老女は毎日かかさずに東門へ行って、石の亀の眼に異状があるか無いかを｜検《あらた》めることにしていたので、', `From then on, the old woman went to the east gate every single day to check whether anything was wrong with the stone turtle's eyes.`),
+  actors: [{ s: 'turtle', ...TURTLE }, { s: 'oldwoman', x: 224, enter: 'left', ...BIG }] });
+cut({ scene: 'citygate',
+  cap: L('ある少年が怪しんでその子細を訊くと、老女は正直にそれを打ち明けた。', `A boy who wondered at this asked her why, and she told him the truth.`),
+  actors: [{ s: 'turtle', ...TURTLE }, { s: 'oldwoman', x: 224, ...BIG }, { s: 'youth', x: 336, enter: 'right', flip: true, ...BIG }],
+  fx: [{ k: 'emote', who: 2, s: '?', at: .5 }, { k: 'emote', who: 1, s: '…', at: .7, d: 1.4 }] });
+cut({ scene: 'citygate', sp: { dusk: 1 }, dur: 8,
+  cap: L('少年はいたずら者で、そんなら一番あの婆さんをおどかしてやろうと思って、そっとかの亀の眼に朱を塗って置いた。', `The boy was a prankster. Thinking he would give the old woman a good fright, he secretly painted the turtle's eyes red.`),
+  actors: [{ s: [[0, 'turtle'], [.62, 'turtleRed']], ...TURTLE }, { s: 'youth', x: [[0, 360], [.4, 318]], walk: true, flip: true, ...BIG, w: { k: 'brush', a: 200, t: [.45, .65] } }],
+  fx: [{ k: 'glint', x: 300, y: SY - 12, t: [.6, .8], snd: 'glint', at: .6 }] });
+cut({ bgm: 'mystery', scene: 'citygate', sp: { dusk: 1 },
+  cap: L('老女は亀の眼の赤くなっているのに驚いて、早々にこの城内を逃げ出すと、', `When the old woman saw the turtle's eyes had turned red, she was alarmed and fled the city at once, and`),
+  actors: [{ s: 'turtleRed', ...TURTLE }, { s: 'oldwoman', x: 224, enter: 'left', exit: 'left', ...BIG, shake: [[.4, 0], [.45, .6]] }],
+  fx: [{ k: 'emote', who: 1, s: '!', at: .42 }] });
+cut({ scene: 'heights', sp: { city: 1 },
+  cap: L('｜青衣《せいい》の童子が途中に待っていて、われは龍の子であるといって、老女を山の高い所へ連れて行った。', `a boy dressed in blue was waiting on the road. Saying he was the son of the dragon, he led her up to a high place in the mountains.`),
+  actors: [{ s: 'blueboy', x: 214, ...BIG }, { s: 'oldwoman', x: 160, enter: 'left', ...BIG }],
+  fx: [{ k: 'glint', x: 214, y: 100, t: [.1, .4] }] });
+cut({ bgm: 'disaster', scene: 'heights', sp: { city: 1, water: [[0, 0], [.75, 1]] }, dur: 8,
+  cap: L('それと同時に、城は突然に陥没して一面の｜湖《みずうみ》となった。', `At that very moment, the city suddenly sank and became a wide lake.`),
+  actors: [{ s: 'blueboy', x: 214, ...BIG }, { s: 'oldwoman', x: 160, ...BIG, shake: [[.2, .5], [.6, .5], [.7, 0]] }],
+  fx: [{ k: 'snd', s: 'thunder', at: .1 }, { k: 'emote', who: 1, s: '!', at: .25 }] });
+
+// ---- 長水県の城 ----
+chapter(2, L('長水県の城', `The City of Changshui`), 'citygate', {}, { bgm: null });
+cut({ bgm: 'chinese', scene: 'citygate',
+  cap: L('もう一つ、それと同じ話がある。｜秦《しん》の｜始皇《しこう》の時、｜長水《ちょうすい》県に一種の童謡がはやった。', `There is another tale just like it. In the time of the First Emperor of Qin, a children's song spread through Changshui County.`),
+  actors: [{ s: 'child', x: 130, ...BIG, bob: true }, { s: 'childB', x: 176, ...BIG, bob: true }, { s: 'childC', x: 222, ...BIG, bob: true }],
+  fx: [{ k: 'notes', who: 1 }] });
+cut({ scene: 'citygate',
+  say: { who: 1, name: L('童謡', "Children's Song"), text: L('「｜御門《ごもん》に血を見りゃお城が沈む――」', `"Blood on the gate, and the city will sink—"`) },
+  actors: [{ s: 'child', x: 130, ...BIG, bob: true }, { s: 'childB', x: 176, ...BIG, bob: true }, { s: 'childC', x: 222, ...BIG, bob: true }],
+  fx: [{ k: 'notes', who: 0 }, { k: 'notes', who: 2 }] });
+cut({ scene: 'citygate',
+  cap: L('誰が｜謡《うた》い出したともなしに、この唄がそれからそれへと拡がった。ある老女がそれを気に病んで毎日その城門を｜窺《うかが》いに行くので、', `No one knew who first sang it, but the song passed from one person to the next. An old woman, troubled by it, went to look at the city gate every day, so`),
+  actors: [{ s: 'soldier', x: 236, ...BIG, w: { k: 'spear', a: -80 } }, { s: 'oldwoman', x: 150, enter: 'left', ...BIG }],
+  fx: [{ k: 'emote', who: 1, s: '?', at: .55 }] });
+cut({ scene: 'citygate', sp: { dusk: 1, blood: [[0, 0], [.5, 0], [.8, 1]] }, dur: 8,
+  cap: L('門を守っている将校が彼女をおどしてやろうと思って、ひそかに犬の血を城門に塗って置くと、', `the officer guarding the gate decided to frighten her, and secretly smeared dog's blood on the gate.`),
+  actors: [{ s: 'soldier', x: [[0, 236], [.35, 210]], walk: true, flip: true, ...BIG, w: { k: 'brush', a: 200, t: [.45, .8] } }] });
+cut({ bgm: null, scene: 'citygate', sp: { dusk: 1, blood: 1 },
+  cap: L('老女はそれを見て、おどろいて遠く逃げ去った。', `When the old woman saw it, she was terrified and fled far away.`),
+  actors: [{ s: 'soldier', x: 262, ...BIG, w: { k: 'spear', a: -80 } }, { s: 'oldwoman', x: 150, enter: 'left', exit: 'left', ...BIG, shake: [[.35, 0], [.4, .6]] }],
+  fx: [{ k: 'emote', who: 1, s: '!', at: .38 }] });
+cut({ bgm: 'disaster', scene: 'citygate', sp: { dusk: 1, blood: 1 }, dur: 8,
+  cap: L('そのあとへ忽ちに大水が溢れ出て、城は水の底に沈んでしまった。', `Soon after, a great flood burst forth, and the city sank beneath the water.`),
+  actors: [{ s: 'soldier', x: 262, ...BIG, shake: [[.2, .6], [1, .6]], w: { k: 'spear', a: -80 } }],
+  fx: [{ k: 'flood', h: [[0, 0], [.85, 230]] }, { k: 'emote', who: 0, s: '!', at: .25 }, { k: 'snd', s: 'thunder', at: .15 }] });
+
+credits('heights', L('亀の眼', `The Turtle's Eyes`), { city: 1, water: 1 }, 'kameTheme');
+
+boot({ region: 'cn', chapters: [L('序', `Prologue`), L('巣の城', `The City of Chao`), L('長水県の城', `The City of Changshui`)], nums: ['', '', ''],
+  title: L(null, "The Turtle's Eyes | Chinese Tales of the Strange | Kido Okamoto") });
+</script>
+</body>
+</html>

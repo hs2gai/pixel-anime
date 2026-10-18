@@ -1,0 +1,7 @@
+.playwright-mcp/
+dist/
+__pycache__/
+node_modules/
+.wrangler/
+.env*
+.dev.vars*

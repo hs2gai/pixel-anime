@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>公開の管理</title>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=IBM+Plex+Mono:wght@400;500&family=Shippori+Mincho:wght@500;700&display=swap" rel="stylesheet">
+<script>
+// 一覧と同じ表示モード（ライト / ダーク）を当てる
+document.documentElement.dataset.theme = 'light';
+try { const t = localStorage.getItem('pixel-anime:theme'); if (t) document.documentElement.dataset.theme = t; } catch (e) { /* 保存できない環境では既定のまま */ }
+</script>
+<style>
+  :root {
+    --bg: #121212; --card: #1a1a1a; --line: #2e2d2b; --ui: #8f8c86; --text: #d8d4ca; --strong: #ffffff;
+    --hover: #57544e; --pressed: #26251f; --accent: #ffd23f; --on: #5cc47a; --off: #8f8c86; --warn: #e0705a;
+    --dot: 'DotGothic16', monospace; --serif: 'Shippori Mincho', 'Yu Mincho', serif; --mono: 'IBM Plex Mono', ui-monospace, monospace;
+  }
+  :root[data-theme="light"] {
+    --bg: #f5f1e8; --card: #fffdf8; --line: #ddd5c4; --ui: #6b665d; --text: #2a2721; --strong: #1a1814;
+    --hover: #a89f8c; --pressed: #e6dfcf; --accent: #c08a00; --on: #2f8a4a; --off: #8a8376; --warn: #b8462f;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body { font: 400 14px/1.7 var(--serif); padding: 40px 16px 80px; }
+  main { max-width: 980px; margin: 0 auto; }
+  a { color: inherit; }
+  button, .btn { font: 500 12.5px/1 var(--mono); color: var(--text); background: var(--card); border: 1px solid var(--line); border-radius: 7px; padding: 8px 12px; cursor: pointer; }
+  .btn { text-decoration: none; display: inline-block; }
+  button:hover, .btn:hover { border-color: var(--hover); color: var(--strong); }
+  button:disabled { opacity: .5; cursor: wait; }
+
+  h1 { font: 400 clamp(26px, 5vw, 36px)/1 var(--dot); color: var(--strong); margin: 0; letter-spacing: .04em; }
+  h1 span { color: var(--accent); }
+  .lead { color: var(--ui); margin: 12px 0 0; max-width: 46em; }
+
+  /* 上に貼りつく操作の帯 */
+  .bar { position: sticky; top: 0; z-index: 2; background: var(--bg); border-bottom: 1px solid var(--line); margin: 24px -16px 0; padding: 12px 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+  .count { font: 500 13px/1 var(--mono); color: var(--ui); margin-right: auto; }
+  .count b { color: var(--on); font-weight: 500; }
+  .count i { color: var(--off); font-style: normal; }
+  .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+  .seg button { border: 0; border-radius: 0; background: none; color: var(--ui); }
+  .seg button + button { border-left: 1px solid var(--line); }
+  .seg button[aria-pressed="true"] { color: var(--strong); background: var(--pressed); }
+  #q { font: 400 13px/1 var(--mono); color: var(--text); background: var(--card); border: 1px solid var(--line); border-radius: 7px; padding: 8px 10px; width: 12em; }
+  #build { background: var(--accent); color: #1a1814; border-color: var(--accent); }
+  .status { flex-basis: 100%; font: 400 12.5px/1.5 var(--mono); color: var(--ui); min-height: 1.5em; }
+  .status.err { color: var(--warn); }
+
+  h2 { font: 400 18px/1 var(--dot); letter-spacing: .12em; color: var(--strong); margin: 40px 0 6px; }
+  .grp { margin-top: 22px; }
+  .grp-head { display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+  .grp-head h3 { font: 700 15px/1.4 var(--serif); letter-spacing: .08em; margin: 0; margin-right: auto; }
+  .grp-head h3 small { font: 400 12px/1 var(--mono); color: var(--ui); margin-left: 8px; letter-spacing: 0; }
+  .grp-head button { padding: 5px 9px; font-size: 11.5px; }
+
+  .row { display: grid; grid-template-columns: 96px 1fr auto; align-items: center; gap: 14px; padding: 8px 0; border-bottom: 1px dashed var(--line); }
+  .row[hidden] { display: none; }
+  .row img { width: 96px; aspect-ratio: 16 / 9; object-fit: cover; border-radius: 4px; display: block; background: #000; }
+  .row.off img { filter: grayscale(1); opacity: .45; }
+  .row .t { font: 700 15px/1.4 var(--serif); letter-spacing: .04em; color: var(--strong); text-decoration: none; }
+  .row .t::after { content: ' ↗'; font: 400 12px/1 var(--mono); color: var(--ui); }
+  .row .t:hover, .row .t:focus-visible { text-decoration: underline; }
+  .row .th { display: block; width: 96px; }
+  .row .th:hover img { outline: 2px solid var(--accent); }
+  .row.off .t { color: var(--ui); }
+  .row .f { display: block; font: 400 11.5px/1.4 var(--mono); color: var(--ui); }
+
+  /* 公開 / 非公開のスイッチ */
+  .sw { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font: 500 12px/1 var(--mono); min-width: 6.5em; justify-content: flex-end; }
+  .sw input { appearance: none; width: 38px; height: 22px; border-radius: 11px; background: var(--off); position: relative; cursor: pointer; margin: 0; transition: background .15s; }
+  .sw input::after { content: ''; position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; border-radius: 50%; background: #fff; transition: left .15s; }
+  .sw input:checked { background: var(--on); }
+  .sw input:checked::after { left: 19px; }
+  .sw input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .sw span { color: var(--off); }
+  .sw input:checked + span { color: var(--on); }
+
+  @media (max-width: 520px) {
+    .row { grid-template-columns: 64px 1fr; }
+    .row img, .row .th { width: 64px; }
+    .row .sw { grid-column: 2; justify-content: flex-start; }
+    #q { width: 100%; }
+  }
+</style>
+</head>
+<body>
+<main>
+  <h1>pixel<span>-</span>anime 公開の管理</h1>
+  <p class="lead">スイッチを切り替えると <code>publish.json</code> にすぐ保存します。「公開用に書き出す」で、公開する作品だけを <code>dist/</code> に書き出します（非公開の作品は HTML・サムネイル・一覧のカードごと入りません）。この画面は手元の <code>serve.py</code> でだけ動き、公開用のサイトには入りません。</p>
+
+  <div class="bar">
+    <span class="count" id="count"></span>
+    <div class="seg" role="group" aria-label="表示する作品">
+      <button type="button" data-show="all" aria-pressed="true">すべて</button>
+      <button type="button" data-show="on" aria-pressed="false">公開</button>
+      <button type="button" data-show="off" aria-pressed="false">非公開</button>
+    </div>
+    <input id="q" type="search" placeholder="題名・ファイル名" aria-label="題名・ファイル名で絞り込む">
+    <button type="button" id="build">公開用に書き出す</button>
+    <a class="btn" href="dist/index.html" target="_blank" rel="noopener">書き出した一覧を見る ↗</a>
+    <div class="status" id="status" role="status"></div>
+  </div>
+
+  <div id="list"></div>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+let works = [], pub = new Set(), show = 'all';
+
+// 一覧（index.html）のカードから、作品の題名・サムネイル・欄を読む。欄は「タブ › 作家 › 本 › 巻」
+async function readIndex() {
+  const doc = new DOMParser().parseFromString(await (await fetch('index.html')).text(), 'text/html');
+  const items = [];
+  for (const panel of doc.querySelectorAll('[role="tabpanel"]')) {
+    const tab = doc.getElementById(panel.getAttribute('aria-labelledby')).textContent.trim();
+    for (const card of panel.querySelectorAll('article.card')) {
+      const path = [];
+      const group = card.closest('.group');
+      // カードより前にある見出しのうち、いちばん近いもの
+      const before = sel => [...(group ?? panel).querySelectorAll(sel)].filter(h => h.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING).pop();
+      const h2 = before('h2'), book = group && before('.book'), vol = group && before('.vol');
+      if (h2) path.push(h2.firstChild.textContent.trim());
+      if (book) path.push(book.textContent.trim());
+      if (vol) path.push(vol.firstChild.textContent.trim());
+      const a = card.querySelector('a.name');
+      items.push({ file: a.getAttribute('href').split('/').pop(), title: a.textContent.trim(), thumb: card.querySelector('img')?.getAttribute('src'), tab, group: path.join(' › ') });
+    }
+  }
+  return items;
+}
+
+function setStatus(text, err) { $('status').textContent = text; $('status').classList.toggle('err', !!err); }
+
+async function api(path, body) {
+  const res = await fetch(path, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : {});
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error);
+  return data;
+}
+
+async function save(files, on) {
+  const next = new Set(pub);
+  for (const f of files) on ? next.add(f) : next.delete(f);
+  try {
+    pub = new Set((await api('/api/publish', { public: [...next] })).public);
+    setStatus(`${files.length === 1 ? files[0] : files.length + ' 作品'}を${on ? '公開' : '非公開'}にしました（dist/ に反映するには「公開用に書き出す」）`);
+  } catch (e) {
+    setStatus('保存できませんでした：' + e.message, true);
+  }
+  paint();
+}
+
+function row(w) {
+  const el = document.createElement('div');
+  el.className = 'row'; el.dataset.file = w.file;
+  // サムネイルと題名から作品を新しいタブで開く（非公開の作品も、手元ではここから見られる）
+  el.innerHTML = `<a class="th" target="_blank" rel="noopener" tabindex="-1"><img alt="" loading="lazy"></a><div><a class="t" target="_blank" rel="noopener"></a><span class="f"></span></div>
+    <label class="sw"><input type="checkbox"><span></span></label>`;
+  const img = el.querySelector('img');
+  if (w.thumb) img.src = w.thumb; else img.remove();
+  const a = el.querySelector('.t');
+  for (const l of el.querySelectorAll('.th, .t')) l.href = 'works/' + w.file;
+  a.textContent = w.title;
+  el.querySelector('.f').textContent = w.file;
+  const cb = el.querySelector('input');
+  cb.setAttribute('aria-label', w.title + 'を公開する');
+  cb.addEventListener('change', () => save([w.file], cb.checked));
+  return el;
+}
+
+function render() {
+  const list = $('list');
+  list.textContent = '';
+  let tab = null, grp = null, rows = null;
+  for (const w of works) {
+    if (w.tab !== tab) {
+      tab = w.tab; grp = null;
+      list.append(Object.assign(document.createElement('h2'), { textContent: tab }));
+    }
+    if (w.group !== grp) {
+      grp = w.group;
+      const g = document.createElement('section');
+      g.className = 'grp';
+      g.innerHTML = `<div class="grp-head"><h3></h3><button type="button" data-on="1">すべて公開</button><button type="button" data-on="">すべて非公開</button></div>`;
+      g.querySelector('h3').textContent = grp || '（欄なし）';
+      g.querySelector('h3').append(document.createElement('small'));
+      for (const b of g.querySelectorAll('button')) b.addEventListener('click', () => save([...g.querySelectorAll('.row')].map(r => r.dataset.file), !!b.dataset.on));
+      list.append(g); rows = g;
+    }
+    rows.append(row(w));
+  }
+  paint();
+}
+
+// 公開の状態と絞り込みを画面に当てる
+function paint() {
+  const q = $('q').value.trim().toLowerCase();
+  for (const r of document.querySelectorAll('.row')) {
+    const on = pub.has(r.dataset.file);
+    r.querySelector('input').checked = on;
+    r.querySelector('.sw span').textContent = on ? '公開' : '非公開';
+    r.classList.toggle('off', !on);
+    const text = (r.dataset.file + r.querySelector('.t').textContent).toLowerCase();
+    r.hidden = (show === 'on' && !on) || (show === 'off' && on) || (!!q && !text.includes(q));
+  }
+  for (const g of document.querySelectorAll('.grp')) {
+    const rs = [...g.querySelectorAll('.row')], n = rs.filter(r => pub.has(r.dataset.file)).length;
+    g.querySelector('small').textContent = `${n} / ${rs.length} 公開`;
+    g.hidden = rs.every(r => r.hidden);
+  }
+  for (const h of document.querySelectorAll('#list h2')) {
+    let el = h.nextElementSibling, any = false;
+    for (; el && el.tagName !== 'H2'; el = el.nextElementSibling) any ||= !el.hidden;
+    h.hidden = !any;
+  }
+  const n = works.filter(w => pub.has(w.file)).length;
+  $('count').innerHTML = `<b>公開 ${n}</b> ・ <i>非公開 ${works.length - n}</i> ／ 全 ${works.length} 作品`;
+}
+
+for (const b of document.querySelectorAll('[data-show]')) b.addEventListener('click', () => {
+  show = b.dataset.show;
+  for (const x of document.querySelectorAll('[data-show]')) x.setAttribute('aria-pressed', String(x === b));
+  paint();
+});
+$('q').addEventListener('input', paint);
+
+$('build').addEventListener('click', async () => {
+  $('build').disabled = true;
+  setStatus('書き出しています…');
+  try {
+    const r = await api('/api/build', {});
+    setStatus(`dist/ に書き出しました：公開 ${r.public} 作品・非公開 ${r.private} 作品`);
+  } catch (e) {
+    setStatus('書き出せませんでした：' + e.message, true);
+  }
+  $('build').disabled = false;
+});
+
+(async () => {
+  const [cards, state] = await Promise.all([readIndex(), api('/api/publish')]);
+  pub = new Set(state.public);
+  // 一覧にカードのない作品も、最後にまとめて出す
+  const carded = new Set(cards.map(c => c.file));
+  works = [...cards, ...state.works.filter(f => !carded.has(f)).map(f => ({ file: f, title: f, tab: '一覧にない作品', group: '' }))];
+  render();
+})();
+</script>
+</body>
+</html>
