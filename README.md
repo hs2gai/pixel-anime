@@ -41,13 +41,12 @@ serve.py      dev server
    > Read this story (URL) and make it into a work at `works/xxx_rpg.html`, using `works/kame_rpg.html` as a model. Include an English version.
 2. Play it with `serve.py`, and tell Claude about any scene that looks wrong so it can fix it (screenshots help)
 3. Add a card to `index.html` (`data-n` = largest number so far + 1; newest first) and put a thumbnail at `thumbs/xxx_rpg.jpg` (and `thumbs/en/` for English). You can ask Claude to do this too
-4. Make it public on the admin page (`http://localhost:8765/admin.html`)
 
 Use only text that is in the public domain or that you have permission to use.
 
 ## Publishing
 
-`python build.py` (or "Build for publishing" on the admin page) writes only the public works to `dist/`, which is plain static files. For Cloudflare Workers, set `name` (and `routes`) in `wrangler.jsonc`, then:
+List the works to publish in `publish.json` (or switch them on the admin page, `admin.html` opened via `serve.py`). `python build.py` writes only those works to `dist/`, which is plain static files. For Cloudflare Workers, set `name` (and `routes`) in `wrangler.jsonc`, then:
 
 ```bash
 pnpm install

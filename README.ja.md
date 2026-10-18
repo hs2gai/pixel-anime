@@ -41,13 +41,12 @@ serve.py      開発用のサーバー
    > この話（URL）を読んで、`works/kame_rpg.html`を手本に`works/xxx_rpg.html`を作って。英語版も付けて
 2. `serve.py`で再生して確かめ、気になる場面をClaudeに伝えて直させる（スクリーンショットを見せると伝わりやすい）
 3. `index.html`にカードを足し（`data-n`は今までで一番大きい番号＋1。新しい順に並ぶ）、サムネイルを`thumbs/xxx_rpg.jpg`に置く（英語版は`thumbs/en/`にも）。これもClaudeに頼める
-4. 管理画面（`http://localhost:8765/admin.html`）で公開に切り替える
 
 本文には、パブリックドメインか、使ってよい許諾のある文章だけを使ってください。
 
 ## 公開
 
-`python build.py`（または管理画面の「公開用に書き出す」）で、公開する作品だけを`dist/`に書き出します。中身は静的なファイルだけです。Cloudflare Workersに置くときは`wrangler.jsonc`の`name`（と`routes`）を自分のものに変えて：
+公開する作品は`publish.json`に書きます（`serve.py`で開いた管理画面`admin.html`でも切り替えられます）。`python build.py`で、その作品だけを`dist/`に書き出します。中身は静的なファイルだけです。Cloudflare Workersに置くときは`wrangler.jsonc`の`name`（と`routes`）を自分のものに変えて：
 
 ```bash
 pnpm install
