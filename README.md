@@ -37,9 +37,10 @@ serve.py      dev server
 
 ## Making a work
 
-1. Copy `works/kame_rpg.html` to `works/xxx_rpg.html` and rewrite the title, characters, backgrounds and script
-2. Add a card to `index.html` (`data-n` = largest number so far + 1; newest first)
-3. Put a thumbnail at `thumbs/xxx_rpg.jpg` (and `thumbs/en/` for English)
+1. Open this repository in Claude (e.g. Claude Code), show it the original text (a URL or a text file), and ask it to make a work using `works/kame_rpg.html` as a model. For example:
+   > Read this story (URL) and make it into a work at `works/xxx_rpg.html`, using `works/kame_rpg.html` as a model. Include an English version.
+2. Play it with `serve.py`, and tell Claude about any scene that looks wrong so it can fix it (screenshots help)
+3. Add a card to `index.html` (`data-n` = largest number so far + 1; newest first) and put a thumbnail at `thumbs/xxx_rpg.jpg` (and `thumbs/en/` for English). You can ask Claude to do this too
 4. Make it public on the admin page (`http://localhost:8765/admin.html`)
 
 Use only text that is in the public domain or that you have permission to use.

@@ -37,9 +37,10 @@ serve.py      開発用のサーバー
 
 ## 作品の作り方
 
-1. `works/kame_rpg.html`を写して`works/xxx_rpg.html`を作り、題・人物・背景・台本を書きかえる
-2. `index.html`にカードを足す（`data-n`は今までで一番大きい番号＋1。新しい順に並ぶ）
-3. サムネイルを`thumbs/xxx_rpg.jpg`に置く（英語版は`thumbs/en/`にも）
+1. このリポジトリをClaude（Claude Codeなど）で開き、原典（URLか本文のファイル）を見せて、`works/kame_rpg.html`を手本に作品を作らせる。たとえば：
+   > この話（URL）を読んで、`works/kame_rpg.html`を手本に`works/xxx_rpg.html`を作って。英語版も付けて
+2. `serve.py`で再生して確かめ、気になる場面をClaudeに伝えて直させる（スクリーンショットを見せると伝わりやすい）
+3. `index.html`にカードを足し（`data-n`は今までで一番大きい番号＋1。新しい順に並ぶ）、サムネイルを`thumbs/xxx_rpg.jpg`に置く（英語版は`thumbs/en/`にも）。これもClaudeに頼める
 4. 管理画面（`http://localhost:8765/admin.html`）で公開に切り替える
 
 本文には、パブリックドメインか、使ってよい許諾のある文章だけを使ってください。
