@@ -13,7 +13,7 @@ One sample is included: "The Turtle's Eyes" (`works/kame_rpg.html`) from Kido Ok
 
 ## Getting started
 
-Requires Python 3 and [Beautiful Soup 4](https://pypi.org/project/beautifulsoup4/) (Node.js and pnpm only for deploying to Cloudflare).
+Requires Python 3 and [Beautiful Soup 4](https://pypi.org/project/beautifulsoup4/).
 
 ```bash
 pip install beautifulsoup4
@@ -48,14 +48,7 @@ Use only text that is in the public domain or that you have permission to use.
 
 ## Publishing
 
-List the works to publish in `publish.json` (or switch them on the admin page, `admin.html` opened via `serve.py`). `python build.py` writes only those works to `dist/`, which is plain static files. For Cloudflare Workers, set `name` (and `routes`) in `wrangler.jsonc`, then:
-
-```bash
-pnpm install
-pnpm cf:deploy    # build and deploy (pnpm cf:preview for a preview URL)
-```
-
-`serve.py` is for development only. Do not expose it to the internet.
+`python build.py` writes the works listed in `publish.json` to `dist/` as static files, so you can put them on any web host. `serve.py` is for development only; do not expose it to the internet.
 
 ## License
 

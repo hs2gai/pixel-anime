@@ -13,7 +13,7 @@
 
 ## 始め方
 
-Python 3と[Beautiful Soup 4](https://pypi.org/project/beautifulsoup4/)が必要です（Node.jsとpnpmはCloudflareへ公開するときだけ）。
+Python 3と[Beautiful Soup 4](https://pypi.org/project/beautifulsoup4/)が必要です。
 
 ```bash
 pip install beautifulsoup4
@@ -48,14 +48,7 @@ serve.py      開発用のサーバー
 
 ## 公開
 
-公開する作品は`publish.json`に書きます（`serve.py`で開いた管理画面`admin.html`でも切り替えられます）。`python build.py`で、その作品だけを`dist/`に書き出します。中身は静的なファイルだけです。Cloudflare Workersに置くときは`wrangler.jsonc`の`name`（と`routes`）を自分のものに変えて：
-
-```bash
-pnpm install
-pnpm cf:deploy    # 書き出して公開（プレビュー URL は pnpm cf:preview）
-```
-
-`serve.py`は開発用です。インターネットには公開しないでください。
+`python build.py`で、`publish.json`に書いた作品を`dist/`に静的なファイルとして書き出します。好きなWebサーバーに置いて公開できます。`serve.py`は開発用なので、インターネットには公開しないでください。
 
 ## ライセンス
 
