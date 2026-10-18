@@ -40,7 +40,7 @@ serve.py      開発用のサーバー
 1. `works/kame_rpg.html`を写して`works/xxx_rpg.html`を作り、題・人物・背景・台本を書きかえる
 2. `index.html`にカードを足す（`data-n`は今までで一番大きい番号＋1。新しい順に並ぶ）
 3. サムネイルを`thumbs/xxx_rpg.jpg`に置く（英語版は`thumbs/en/`にも）
-4. 管理画面（http://localhost:8765/admin.html）で公開に切り替える
+4. 管理画面（`http://localhost:8765/admin.html`）で公開に切り替える
 
 本文には、パブリックドメインか、使ってよい許諾のある文章だけを使ってください。
 

@@ -40,7 +40,7 @@ serve.py      dev server
 1. Copy `works/kame_rpg.html` to `works/xxx_rpg.html` and rewrite the title, characters, backgrounds and script
 2. Add a card to `index.html` (`data-n` = largest number so far + 1; newest first)
 3. Put a thumbnail at `thumbs/xxx_rpg.jpg` (and `thumbs/en/` for English)
-4. Make it public on the admin page (http://localhost:8765/admin.html)
+4. Make it public on the admin page (`http://localhost:8765/admin.html`)
 
 Use only text that is in the public domain or that you have permission to use.
 
