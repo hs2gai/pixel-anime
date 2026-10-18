@@ -5,6 +5,8 @@ English | [日本語](README.ja.md)
 A playback engine for pixel-art picture-story movies styled like a top-down RPG. Each work is a script in a single HTML file.
 Text types out in a message window (name tags, choices, ruby, "!" above heads), and music and sound effects are chiptunes synthesized with WebAudio. Works can be bilingual (Japanese / English).
 
+**Demo**: [pixel-anime.hs2g.com](https://pixel-anime.hs2g.com/) (with many more works)
+
 ![Sample: "The Turtle's Eyes"](thumbs/en/kame_rpg.jpg)
 
 One sample is included: "The Turtle's Eyes" (`works/kame_rpg.html`) from Kido Okamoto's *Chinese Tales of the Strange*. Use it as a model and add your own works under `works/`.
