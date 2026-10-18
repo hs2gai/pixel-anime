@@ -101,7 +101,7 @@ def build():
             if thumb.exists():
                 shutil.copy2(thumb, DIST / 'thumbs' / sub / thumb.name)
     (DIST / 'index.html').write_text(build_index(public), encoding='utf-8')
-    shutil.copy2(ROOT / '_headers', DIST / '_headers')   # Cloudflare が返すレスポンスヘッダー
+    shutil.copy2(ROOT / '_headers', DIST / '_headers')   # Web サーバーが返すレスポンスヘッダー（_headers を読むホスティング向け）
     return {'public': len(works), 'private': len(all_works()) - len(works)}
 
 
