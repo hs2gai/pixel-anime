@@ -5,7 +5,7 @@
 - 非公開の作品は、HTML・サムネイル・一覧のカードを dist/ に入れない
 - カードがなくなった欄（作家・本・巻・教科の見出し）も一覧から消す
 - シリーズの「前の話・次の話」も非公開の話へはつながない（engine/core.js の PUBLIC_WORKS を置き換える）
-- old/ sketches/ や管理画面（admin.html）・開発用のファイルは入れない
+- 入れるのは作品・engine/・cast/・サムネイル・一覧・_headers だけ。管理画面（admin.html）や開発用のファイルは入れない
 """
 import json
 import shutil
